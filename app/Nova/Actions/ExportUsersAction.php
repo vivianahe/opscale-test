@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Nova\Actions;
 
 use Illuminate\Bus\Queueable;
@@ -8,11 +7,10 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
 use Laravel\Nova\Actions\Action;
 use Laravel\Nova\Fields\ActionFields;
-use Laravel\Nova\Fields\Select;
+use Laravel\Nova\Fields\Multiselect;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Rap2hpoutre\FastExcel\FastExcel;
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
 
 class ExportUsersAction extends Action
 {
@@ -28,17 +26,29 @@ class ExportUsersAction extends Action
     public function handle(ActionFields $fields, Collection $models)
     {
         $users = User::all();
+        $selectedFields = $fields->field_mapping;
 
-        $filePath = 'support/users.xlsx';
+        $fieldMapping = [
+            'name' => 'Nombre',
+            'email' => 'Correo Electrónico',
+            'created_at' => 'Fecha de Creación',
+        ];
 
-        $usersMapped = $users->map(function ($user) {
-            return [
-                'Nombre' => $user->name,
-                'Correo Electrónico' => $user->email,
-                'Fecha de Creación' => $user->created_at->format('Y-m-d')
-            ];
+        $usersMapped = $users->map(function ($user) use ($selectedFields, $fieldMapping) {
+            $mappedUser = [];
+            foreach ($selectedFields as $field) {
+                if ($field === 'name') {
+                    $mappedUser[$fieldMapping[$field]] = $user->name;
+                } elseif ($field === 'email') {
+                    $mappedUser[$fieldMapping[$field]] = $user->email;
+                } elseif ($field === 'created_at') {
+                    $mappedUser[$fieldMapping[$field]] = $user->created_at->format('Y-m-d');
+                }
+            }
+            return $mappedUser;
         });
 
+        $filePath = 'support/users.xlsx';
         (new FastExcel($usersMapped))->export(public_path($filePath));
 
         return Action::download(
@@ -55,6 +65,15 @@ class ExportUsersAction extends Action
      */
     public function fields(NovaRequest $request)
     {
-        return [];
+        return [
+            Multiselect::make('Mapeo de campos', 'field_mapping')
+                ->options([
+                    'name' => 'Nombre',
+                    'email' => 'Correo electrónico',
+                    'created_at' => 'Fecha de Creación',
+                ])
+                ->rules('required')
+        ];
     }
 }
+

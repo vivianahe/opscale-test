@@ -107,6 +107,7 @@ class User extends Resource
     public function actions(NovaRequest $request)
     {
         return [
+            new \App\Nova\Actions\ImportUsersAction,
             new \App\Nova\Actions\ExportUsersAction,
         ];
     }
