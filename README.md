@@ -17,14 +17,11 @@ Instrucciones para instalar y configurar la aplicación:
 - cd opscale-test
 
 ## 3. Instalar dependencias
-- composer install
+- composer update
 - npm install
 
-## 4. Crear base de datos
-- php artisan migrate
-
-## 5. Ejecutar seeders
+## 4. Ejecutar seeders
 - php artisan db:seed
 
-## 6. Iniciar el servidor
+## 5. Iniciar el servidor
 - php artisan serve
